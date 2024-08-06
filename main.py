@@ -1,3 +1,4 @@
+import os
 import smtplib
 from datetime import date
 from dotenv import dotenv_values
@@ -17,13 +18,9 @@ from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 
 CURRENT_YEAR=date.today().strftime("%Y") 
 
-# config the environment variables
-config = dotenv_values(".env")
-
-
 # create flask application
 app = Flask(__name__)
-app.config['SECRET_KEY'] = config["FLASK_KEY"]
+app.config['SECRET_KEY'] = os.environ.get('FLASK_KEY')
 ckeditor = CKEditor(app)
 Bootstrap5(app)
 
@@ -34,7 +31,7 @@ login_manager.init_app(app)
 # CREATE DATABASE
 class Base(DeclarativeBase):
     pass
-app.config['SQLALCHEMY_DATABASE_URI'] = config["DB_URI"]
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI", "sqlite:///posts.db")
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 
@@ -281,10 +278,10 @@ def send_mail(name, email, phone, message):
     email_message = f"Subject:New Message\n\nName: {name}\nEmail: {email}\nPhone: {phone}\nMessage: {message}"
     with smtplib.SMTP("smtp.gmail.com") as connection:
         connection.starttls()
-        connection.login(user=config["EMAIL"], password=config["PASSWORD"])
+        connection.login(user=os.environ.get("EMAIL"), password=os.environ.get("PASSWORD"))
         connection.sendmail(
-            from_addr=config["EMAIL"],
-            to_addrs=config["EMAIL"],
+            from_addr=os.environ.get("EMAIL"),
+            to_addrs=os.environ.get("EMAIL"),
             msg=email_message
         )
 
